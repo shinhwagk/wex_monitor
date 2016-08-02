@@ -1,0 +1,5 @@
+CREATE TABLE nodes (
+  data json DEFAULT NULL,
+  ip varchar(30) GENERATED ALWAYS AS (JSON_UNQUOTE(data->'$.ip')) VIRTUAL NOT NULL,
+  UNIQUE KEY ip (ip)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;

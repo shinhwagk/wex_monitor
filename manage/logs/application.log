@@ -1,0 +1,51 @@
+2016-08-01 09:55:52,852 [INFO] from play.core.server.NettyServer in pool-4-thread-6 - Listening for HTTP on /0:0:0:0:0:0:0:0:9000
+2016-08-01 11:21:16,697 [ERROR] from application in netty-event-loop-3 - 
+
+! @710gmej0l - Internal server error, for (HEAD) [/api/heat] ->
+ 
+play.api.Configuration$$anon$1: Configuration error[application: application.conf: java.io.IOException: resource not found on classpath: application.conf, application.json: java.io.IOException: resource not found on classpath: application.json, application.properties: java.io.IOException: resource not found on classpath: application.properties]
+	at play.api.Configuration$.configError(Configuration.scala:154)
+	at play.api.Configuration$.load(Configuration.scala:101)
+	at play.api.Configuration$.load(Configuration.scala:109)
+	at play.api.ApplicationLoader$.createContext(ApplicationLoader.scala:91)
+	at play.core.server.DevServerStart$$anonfun$mainDev$1$$anon$1$$anonfun$get$1$$anonfun$apply$1$$anonfun$1$$anonfun$2.apply(DevServerStart.scala:156)
+	at play.core.server.DevServerStart$$anonfun$mainDev$1$$anon$1$$anonfun$get$1$$anonfun$apply$1$$anonfun$1$$anonfun$2.apply(DevServerStart.scala:155)
+	at play.utils.Threads$.withContextClassLoader(Threads.scala:21)
+	at play.core.server.DevServerStart$$anonfun$mainDev$1$$anon$1$$anonfun$get$1$$anonfun$apply$1$$anonfun$1.apply(DevServerStart.scala:155)
+	at play.core.server.DevServerStart$$anonfun$mainDev$1$$anon$1$$anonfun$get$1$$anonfun$apply$1$$anonfun$1.apply(DevServerStart.scala:126)
+	at scala.Option.map(Option.scala:146)
+	at play.core.server.DevServerStart$$anonfun$mainDev$1$$anon$1$$anonfun$get$1$$anonfun$apply$1.apply(DevServerStart.scala:126)
+	at play.core.server.DevServerStart$$anonfun$mainDev$1$$anon$1$$anonfun$get$1$$anonfun$apply$1.apply(DevServerStart.scala:124)
+	at scala.util.Success.flatMap(Try.scala:231)
+	at play.core.server.DevServerStart$$anonfun$mainDev$1$$anon$1$$anonfun$get$1.apply(DevServerStart.scala:124)
+	at play.core.server.DevServerStart$$anonfun$mainDev$1$$anon$1$$anonfun$get$1.apply(DevServerStart.scala:116)
+	at scala.concurrent.impl.Future$PromiseCompletingRunnable.liftedTree1$1(Future.scala:24)
+	at scala.concurrent.impl.Future$PromiseCompletingRunnable.run(Future.scala:24)
+	at java.util.concurrent.ForkJoinTask$RunnableExecuteAction.exec(ForkJoinTask.java:1402)
+	at java.util.concurrent.ForkJoinTask.doExec(ForkJoinTask.java:289)
+	at java.util.concurrent.ForkJoinPool$WorkQueue.runTask(ForkJoinPool.java:1056)
+	at java.util.concurrent.ForkJoinPool.runWorker(ForkJoinPool.java:1692)
+	at java.util.concurrent.ForkJoinWorkerThread.run(ForkJoinWorkerThread.java:157)
+Caused by: com.typesafe.config.ConfigException$IO: application: application.conf: java.io.IOException: resource not found on classpath: application.conf, application.json: java.io.IOException: resource not found on classpath: application.json, application.properties: java.io.IOException: resource not found on classpath: application.properties
+	at com.typesafe.config.impl.SimpleIncluder.fromBasename(SimpleIncluder.java:236)
+	at com.typesafe.config.impl.ConfigImpl.parseResourcesAnySyntax(ConfigImpl.java:132)
+	at com.typesafe.config.ConfigFactory.parseResourcesAnySyntax(ConfigFactory.java:1024)
+	at com.typesafe.config.ConfigFactory.parseApplicationConfig(ConfigFactory.java:238)
+	at com.typesafe.config.ConfigFactory.defaultApplication(ConfigFactory.java:519)
+	at play.api.Configuration$$anonfun$3.apply(Configuration.scala:73)
+	at play.api.Configuration$$anonfun$3.apply(Configuration.scala:69)
+	at scala.Option.getOrElse(Option.scala:121)
+	at play.api.Configuration$.load(Configuration.scala:69)
+	... 20 common frames omitted
+Caused by: com.typesafe.config.ConfigException$IO: application.conf: java.io.IOException: resource not found on classpath: application.conf
+	at com.typesafe.config.impl.Parseable.parseValue(Parseable.java:188)
+	at com.typesafe.config.impl.Parseable.parseValue(Parseable.java:174)
+	at com.typesafe.config.impl.Parseable.parse(Parseable.java:152)
+	at com.typesafe.config.impl.SimpleIncluder.fromBasename(SimpleIncluder.java:185)
+	... 28 common frames omitted
+Caused by: java.io.IOException: resource not found on classpath: application.conf
+	at com.typesafe.config.impl.Parseable$ParseableResources.rawParseValue(Parseable.java:735)
+	at com.typesafe.config.impl.Parseable$ParseableResources.rawParseValue(Parseable.java:710)
+	at com.typesafe.config.impl.Parseable.parseValue(Parseable.java:180)
+	... 31 common frames omitted
+2016-08-01 18:27:43,716 [INFO] from play.core.server.NettyServer in pool-4-thread-6 - Stopping server...

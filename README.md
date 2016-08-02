@@ -4,5 +4,3 @@
 master  --montior item--> slaves
         --collect item--> slaves
 ```
-        
-      
