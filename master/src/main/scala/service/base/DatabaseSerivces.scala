@@ -19,7 +19,7 @@ object DatabaseSerivces {
     db.run(sqlu"""update nodes set data = json_set(data,'$$.status',"die") where ip = $ip""")
   }
 
-  def updateNodeHeartRetry: Future[Int] = {
+  def updateDieToRetryNodes: Future[Int] = {
     db.run(sqlu"""update nodes set data = json_set(data,'$$.status',"retry") where JSON_UNQUOTE(data->'$$.status') = 'die'""")
   }
 

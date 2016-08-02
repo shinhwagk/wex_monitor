@@ -1,21 +1,21 @@
 {
   "ip": "192.168.0.1",
-  "status": "normal", // normal|stop |die
+  "status": "normal", // normal | stop | die
   "heart": 1111,
   "monitors": [
     {
       "type": "python",
       "code": "xxxx",
       "interval": 1111,
-      "status":"normal", // normal|stop,
-      "last":1111
+      "status":"normal", // success | failure | suspense,
+      "timestamp":1111
     },
     {
       "type": "sql",
       "code": "xxxx",
       "interval": 1111,
-      "status":"normal", // normal|stop,
-      "last":1111
+      "status":"normal",
+      "timestamp":1111
     }
   ]
 }

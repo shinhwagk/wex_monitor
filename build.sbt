@@ -3,6 +3,7 @@ import sbt.Keys._
 val AkkaVersion = "2.4.8"
 val PlayVersion = "2.5.0"
 val SlickVersion = "3.1.1"
+val HikariVersion = "2.4.7"
 
 lazy val commonSettings = Seq(
   organization := "com.wex",
@@ -16,7 +17,7 @@ lazy val commonSettings = Seq(
     "com.typesafe.play" %% "play-ws" % PlayVersion,
     "mysql" % "mysql-connector-java" % "5.1.38",
     "com.typesafe.slick" %% "slick-hikaricp" % SlickVersion,
-    "com.zaxxer" % "HikariCP" % "2.4.7",
+    "com.zaxxer" % "HikariCP" % HikariVersion,
     "org.slf4j" % "slf4j-nop" % "1.6.4"
   )
 )
@@ -25,7 +26,7 @@ lazy val master = (project in file("master")).
   settings(commonSettings: _*).
   settings(
     name := "master"
-  )
+  )enablePlugins(JavaAppPackaging)
 
 lazy val agent = (project in file("agent")).
   settings(commonSettings: _*).

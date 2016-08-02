@@ -5,8 +5,7 @@ package service
 
 import akka.actor.ActorSystem
 import akka.stream._
-import akka.stream.scaladsl.Merge
-import akka.stream.scaladsl.{Broadcast, Flow, GraphDSL, RunnableGraph, Sink, Source}
+import akka.stream.scaladsl.{Broadcast, Flow, GraphDSL, Merge, RunnableGraph, Sink, Source, Unzip, Zip}
 import common.MyType
 import service.HeartService.Heart
 import service.base.{ClientServices, DatabaseSerivces}
@@ -31,33 +30,38 @@ class HeartService(implicit system: ActorSystem) {
   val start = RunnableGraph.fromGraph(GraphDSL.create() { implicit b =>
     import GraphDSL.Implicits._
 
-    val timer =
+    val genNodeIp =
       Source.tick(initialDelay = 0.second, interval = 1.second, ())
+      .mapAsync(1)(_getMonitorNodes(_))
+      .mapConcat(_:::Nil)
 
-    val genNodes = Flow[Unit]
-      .mapAsync(1)(_getNormalNodes(_))
-      .mapConcat(p => p)
-      .mapAsync(10)(_genStatusOfWSResponse(_))
+    val checkHeart = Flow[String].mapAsync(1)(_genStatusOfWSResponse(_))
+
+    val makeHeartObj = Flow[(String,Boolean)].map(p=>Heart(p._1,p._2))
 
     val filter = Flow[Heart]
-      .filter(_.status)
-      .map(_.ip)
-      .mapAsync(1)(_updateDBNodeHeartTime(_))
+      .mapAsync(1)(p=>_updateDBNodeHeartTime(p.ip))
 
     val filterNot = Flow[Heart]
-      .filter(!_.status)
-      .map(_.ip)
-      .map(updateNodeHeatFailreMap(_))
+      .map(p=>updateNodeHeatFailreMap(p.ip))
       .filter(nodeHeatFailreMap(_) > 5)
       .mapAsync(1)(_updateDBNodeDie(_))
 
-    val broadcast = b.add(Broadcast[Heart](2))
+    val broadcast = b.add(Broadcast[String](2))
+    val bcast = b.add(Broadcast[Heart](2))
     val merge = b.add(Merge[Any](2))
+    val zip = b.add(Zip[String,Boolean])
 
 
-    timer ~> genNodes ~> broadcast ~> filter    ~> merge
+     genNodeIp ~> broadcast ~> checkHeart ~> zip.in1
 
-                         broadcast ~> filterNot ~> merge ~> Sink.ignore
+                  broadcast               ~> zip.in0
+
+                 bcast.in <~ makeHeartObj <~ zip.out
+
+                 bcast.out(0).filter(_.status)  ~> filter    ~> merge
+
+                 bcast.out(1).filter(!_.status) ~> filterNot ~> merge ~> Sink.ignore
 
 
     ClosedShape
@@ -65,11 +69,11 @@ class HeartService(implicit system: ActorSystem) {
 
   private val _genStatusOfWSResponse = (ip: String) =>
     ClientServices.heartService(ip)
-      .map(p => Heart(ip, true))
+      .map(p =>  true)
       .recover {
         case ex: Exception =>
           log.error(s"node heart failure: ${ex.getMessage}.")
-          Heart(ip, false)
+          false
       }
 
   private val _updateDBNodeHeartTime = (ip: String) => {
@@ -77,10 +81,10 @@ class HeartService(implicit system: ActorSystem) {
     DatabaseSerivces.updateNodeHeartTime(ip)
   }
 
-  private val _getNormalNodes: (Unit) => Future[List[String]] = (u: Unit) => {
+  private val _getMonitorNodes: (Unit) => Future[List[String]] = (u: Unit) => {
     val or = if (System.currentTimeMillis() / 1000 % 15 == 0) Some {
       log.info("test heart die node.")
-      DatabaseSerivces.updateNodeHeartRetry
+      DatabaseSerivces.updateDieToRetryNodes
     } else None
 
     val gthn: Future[List[String]] = DatabaseSerivces.getTestHeartNodes
