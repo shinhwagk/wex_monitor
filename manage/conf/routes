@@ -1,0 +1,3 @@
+GET / controllers.Application.index
+
+GET /api/nodes controllers.Application.nodes

@@ -1,6 +1,6 @@
 import akka.actor.{ActorSystem, Props}
 import akka.stream.ActorMaterializer
-import service.base.DatabaseSerivces
+import org.gk.services.base.DatabaseSerivces
 
 /**
   * Created by zhangxu on 2016/8/1.

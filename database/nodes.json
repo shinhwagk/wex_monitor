@@ -1,7 +1,10 @@
 {
   "ip": "192.168.0.1",
-  "status": "normal", // normal | stop | die
-  "heart": 1111,
+  "status": "normal", // normal | stop | die | doubt
+  "heart": {
+    "timestamp": 111,
+    "retry" : 1
+  },
   "monitors": [
     {
       "type": "python",

@@ -12,7 +12,7 @@ import scala.concurrent.duration._
   */
 object Test extends App {
 
-  import service.base.ActorSystemServices._
+  import org.gk.services.base.ActorSystemServices._
 
   //
   //  Source(1 to 10).via(Flow[Int]

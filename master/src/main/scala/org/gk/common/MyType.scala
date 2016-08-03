@@ -1,4 +1,4 @@
-package common
+package org.gk.common
 
 import akka.event.LogSource
 

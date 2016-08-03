@@ -1,4 +1,4 @@
-package service.base
+package org.gk.services.base
 
 import akka.actor.ActorSystem
 import akka.stream.ActorMaterializer
