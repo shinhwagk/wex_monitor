@@ -18,7 +18,7 @@ object Bootstrap extends App {
 
   val routes: Route = HeartApi.route ~ MonitorApi.route
 
-  val bindingFuture: Future[ServerBinding] = Http().bindAndHandle(routes, "0.0.0.0", 8081)
+  val bindingFuture: Future[ServerBinding] = Http().bindAndHandle(routes, "0.0.0.0", 8083)
 
   println(s"Server online at http://localhost:8080/\nPress RETURN to stop...")
   StdIn.readLine()

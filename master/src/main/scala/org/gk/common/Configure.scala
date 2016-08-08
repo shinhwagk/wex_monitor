@@ -10,4 +10,7 @@ object Configure {
   val die_retry_interval = conf.getInt("wex.heart.die_retry_interval")
   val heart_interval = conf.getInt("wex.heart.interval")
   val heart_retry = conf.getInt("wex.heart.retry")
+
+
+  val monitor_interval = conf.getInt("wex.monitor.interval")
 }

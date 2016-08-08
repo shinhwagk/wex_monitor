@@ -1,7 +1,7 @@
 package org.gk.services.base
 
 import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport
-import org.gk.services.base.DatabaseTables.Node
+import org.gk.services.base.DatabaseTables.{Node, Task}
 import spray.json.DefaultJsonProtocol
 
 /**
@@ -9,4 +9,5 @@ import spray.json.DefaultJsonProtocol
   */
 object DataTransform extends SprayJsonSupport with DefaultJsonProtocol {
   implicit val _node_Format = jsonFormat6(Node)
+  implicit val _task_Format = jsonFormat2(Task)
 }

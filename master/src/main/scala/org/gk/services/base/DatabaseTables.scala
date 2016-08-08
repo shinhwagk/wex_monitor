@@ -44,4 +44,29 @@ object DatabaseTables {
     def * = (ip, status, hostname, timestamp, environment, retry) <> (Node.tupled, Node.unapply)
   }
 
+  case class Task(name: String, category: String)
+
+  class Tasks(tag: Tag) extends Table[Task](tag, "TASKS") {
+
+    def name = column[String]("NAME", O.PrimaryKey)
+
+    def category = column[String]("CATEGORY")
+
+    def * = (name, category) <> (Task.tupled, Task.unapply)
+  }
+
+
+  case class Monitor(node: String, task: String, interval: Int)
+
+  class Monitors(tag: Tag) extends Table[Monitor](tag, "MONITORS") {
+
+    def node = column[String]("node")
+
+    def task = column[String]("task")
+
+    def interval = column[Int]("interval")
+
+    def * = (node, task, interval) <> (Monitor.tupled, Monitor.unapply)
+  }
+
 }

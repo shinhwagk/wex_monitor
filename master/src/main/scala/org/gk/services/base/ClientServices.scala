@@ -1,6 +1,7 @@
 package org.gk.services.base
 
 import play.api.libs.ws.WSResponse
+
 import scala.concurrent.Future
 
 /**

@@ -1,0 +1,4 @@
+[
+  {"name","disk_space","type":"py"},
+  {"name","invalid_object","type":"sql"}
+]

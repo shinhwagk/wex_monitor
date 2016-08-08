@@ -1,0 +1,7 @@
+[
+  {
+    "node": "10.65.193.27",
+    "task": "disk_space",
+    "interval": 60
+  }
+]
