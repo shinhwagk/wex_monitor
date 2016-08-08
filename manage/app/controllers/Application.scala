@@ -1,17 +1,22 @@
 package controllers
 
-import modles.services.base.{DataTransform, DatabaseServices}
+import javax.inject.Inject
+
+import akka.actor.ActorSystem
+import akka.stream.Materializer
+import modles.services.base.WebSocketServices.NodesWebSocketActor
+import play.api.libs.streams.ActorFlow
+import play.api.libs.ws.WSClient
 import play.api.mvc._
 
-import scala.concurrent.ExecutionContext.Implicits.global
-
-class Application extends Controller {
+class Application @Inject()(implicit system: ActorSystem, materializer: Materializer, ws: WSClient) extends Controller {
 
   def index = Action { implicit request =>
     Ok
   }
 
-  def nodes = Action.async { implicit request =>
-    DatabaseServices.getNodesInfo.map(ls => Ok(DataTransform.nodesDataTransform(ls)))
+  def nodes = WebSocket.accept[String, String] { request =>
+    ActorFlow.actorRef(out => NodesWebSocketActor.props(out,ws))
   }
+
 }

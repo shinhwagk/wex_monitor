@@ -9,20 +9,18 @@ import play.api.libs.json.{Json, Reads, Writes}
   * Created by zhangxu on 2016/8/3.
   */
 object DataTransform {
-  private val sdf = new SimpleDateFormat("yyyyMMdd:HH:mm");
 
   private implicit val personWrites: Reads[NodeInfo] = Json.reads[NodeInfo]
   private implicit val personReads: Writes[NodeInfo] = Json.writes[NodeInfo]
 
-  private case class NodeInfo(ip: String, status: String, hostname: String, timestamp: String, environment: String) {
+  private case class NodeInfo(ip: String, status: String, hostname: String, timestamp: Long, environment: String, retry: Int) {
     def transformTimestampToDate: NodeInfo = {
-      val dateString = sdf.format(new Date(timestamp.toLong))
-      NodeInfo(ip, status, hostname, dateString, environment)
+      val latency = System.currentTimeMillis() - timestamp
+      NodeInfo(ip, status, hostname, latency, environment, retry)
     }
   }
 
-  def nodesDataTransform(jsonString: List[String]): String = {
+  def nodesDataTransform(jsonString: List[String]): String =
     Json.toJson(jsonString.map(Json.parse(_).as[NodeInfo]).map(_.transformTimestampToDate)).toString()
-  }
 
 }

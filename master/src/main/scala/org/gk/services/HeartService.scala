@@ -4,126 +4,95 @@
 package org.gk.services
 
 import akka.actor.ActorSystem
+import akka.http.scaladsl.Http
+import akka.http.scaladsl.model.HttpRequest
 import akka.stream._
-import akka.stream.scaladsl.{Broadcast, Flow, GraphDSL, Merge, RunnableGraph, Sink, Source, Zip}
-import org.gk.common.{Configure, MyType}
-import org.gk.services.HeartService.Heart
-import org.gk.services.base.{ClientServices, DatabaseSerivces}
+import akka.stream.scaladsl.{Sink, Source}
+import org.gk.common.Configure
+import org.gk.common.MyType._
+import org.gk.services.base.DatabaseSerivces
+import org.gk.services.base.DatabaseSerivces._
+import org.gk.services.base.DatabaseTables.{Node, NodeStatus}
+import slick.driver.MySQLDriver.api._
+
 import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.duration._
+import scala.concurrent.Future
+import scala.util.{Failure, Success}
 
 object HeartService {
 
-  object Heart{
-    def apply(d:(String,Boolean)):Heart = Heart(d._1,d._2)
-  }
+  val _bufferSize = 100
+  val dri = Configure.die_retry_interval
+  val _heart_interval = Configure.heart_interval * 1000
+  val heart_retry = Configure.heart_retry
+  val _time = System.currentTimeMillis - dri * 1000
 
-  case class Heart(ip:String, status:Boolean, retry :Int = 0){
-    def setRetry(cnt:Int) = Heart(ip,status,cnt)
-  }
-
+  val log = Logging(this)
 }
 
-class HeartService(implicit system: ActorSystem) {
+class HeartService(implicit system: ActorSystem, materializer: ActorMaterializer) {
 
-  import MyType._
-  import akka.event.Logging
+  import HeartService._
 
-  val heart_interval = Configure.heart_interval
-  val log = Logging(system, this)
+  private val _node_check: (Node) => Unit = (node: Node) => {
+    val ip = node.ip
+    val connectionFlow = Http().outgoingConnection(ip, 8080)
+    val responseFuture = Source.single(HttpRequest(uri = "/api/heart"))
+      .via(connectionFlow)
+      .runWith(Sink.ignore)
 
-  val start = RunnableGraph.fromGraph(GraphDSL.create() { implicit b =>
-    import GraphDSL.Implicits._
+    responseFuture.onComplete {
+      case Success(_) =>
+        val n: Node = node.zeroRetry.setStatus(NodeStatus.NORMAL).updateTimestamp
+        DatabaseSerivces.updateNode(n)
+          .foreach(p => log.debug(s"node update: ${n}"))
+        log.info(s"node: $ip heart success.")
 
-    val genNodeIp =
-      Source.tick(initialDelay = 0.second, interval = heart_interval.second, ())
-        .mapAsync(1)(_getMonitorNodes(_))
-        .mapConcat(_ ::: Nil)
+      case Failure(ex) =>
+        if (node.retry + 1 > heart_retry) {
+          val n: Node = node.zeroRetry.setStatus(NodeStatus.DIE).updateTimestamp
+          DatabaseSerivces.updateNode(n).foreach(none => log.debug(s"node update: ${n}"))
+          log.info(s"node: $ip die.")
+        } else {
+          val n: Node = node.incRetry.setStatus(NodeStatus.DOUBT).updateTimestamp
+          DatabaseSerivces.updateNode(n).foreach(none => log.debug(s"node update: ${n}"))
+          log.info(s"update node: $ip retry number: ${n.retry}")
+        }
 
-    val checkHeart = Flow[String].mapAsync(4)(_checkHeartService(_))
-
-    val success = Flow[Heart]
-      .filter(_.status)
-      .mapAsync(1)(_updateDBNodeHeartTime(_))
-
-    val failure = Flow[Heart]
-      .filter(!_.status)
-      .mapAsync(1)(_updateNodeHeatFailure(_))
-      .mapAsync(1)(_getNodeRetryCount(_))
-      .filter(_.retry >= 5)
-      .mapAsync(1)(_updateDBNodeDie(_))
-
-    val broadcast = b.add(Broadcast[String](2))
-    val bcast = b.add(Broadcast[Heart](2))
-    val merge = b.add(Merge[Any](2))
-    val zip = b.add(Zip[String, Boolean])
-
-
-    genNodeIp ~> broadcast ~> checkHeart ~> zip.in1
-
-                 broadcast               ~> zip.in0
-
-    zip.out.map(Heart(_)) ~> bcast.in
-
-                             bcast.out(0) ~> success ~> merge
-
-                             bcast.out(1) ~> failure ~> merge ~> Sink.ignore
-
-
-    ClosedShape
-  })
-
-  private val _checkHeartService = (ip: String) => {
-    log.info(s"node: ${ip} heart check.")
-    val startTimestamp:Long = System.currentTimeMillis
-    ClientServices.heartCheckService(ip)
-      .map(_ => true)
-      .recover {
-        case ex: Exception =>
-          log.error(s"node: ${ip} heart failure: ${ex.getMessage}.")
-          false
-      }.map{ boolean =>
-        log.info(s"node: ${ip} heart check used time: ${System.currentTimeMillis() - startTimestamp} Millis")
-        boolean
-      }
-  }
-  private val _updateDBNodeHeartTime = (h: Heart) => {
-    log.info(s"node: ${h.ip} heart success.")
-    DatabaseSerivces.updateNodeHeartTimestamp(h.ip)
-  }
-
-  private val _getMonitorNodes = (u: Unit) => {
-    val hri = Configure.die_retry_interval
-    val or = if (System.currentTimeMillis() / 1000 % hri == 0) Some {
-      log.info("retry check die node heart.")
-      DatabaseSerivces.updateNodeStatusToDoubt
-    } else None
-
-    val sthn = DatabaseSerivces.selectCheckHeartNodes
-
-    or.map(_.flatMap(_ => sthn)).getOrElse(sthn)
-  }
-
-  private val _getNodeRetryCount = (h: Heart) => {
-    val ip = h.ip
-    DatabaseSerivces.selectNodeHeartRetryCount(ip).map{cnt:Int=>
-      log.info(s"node { $ip } retry number: ${cnt}")
-      h.setRetry(cnt)
+        log.error(s"node: ${ip} heart failure: ${ex.getMessage}.")
     }
   }
-  
-  private val _updateNodeHeatFailure = (h: Heart) => {
-    val ip  = h.ip
-    log.info(s"node { $ip } heart failure.")
-    DatabaseSerivces.updateNodeHeartRetryInc(ip).map(_=>h)
+
+  val _queue = Source.queue[Node](_bufferSize, OverflowStrategy.dropNew)
+    .map(_node_check(_)).async
+    .to(Sink.ignore).run()
+
+
+  val _gen_query = () =>
+    if (System.currentTimeMillis() / 1000 % dri == 0)
+      _nodes_Table.filter(n => n.status =!= NodeStatus.STOP)
+    else
+      _nodes_Table.filter(n => n.status =!= NodeStatus.STOP && n.status =!= NodeStatus.DIE)
+
+  val _nodes_check = () => {
+    import DatabaseSerivces._
+
+    val query = _gen_query.apply
+
+    Source.fromPublisher(db.stream(query.result))
+      .runForeach(_queue.offer(_))
+      .onComplete {
+        case Success(_) => log.debug("heart service: queue send success")
+        case Failure(ex) => log.debug(s"heart service: queue send failure: ${ex.getMessage}")
+      }
   }
 
-  private val _updateDBNodeDie = (h: Heart) => {
-    val ip = h.ip
-    log.info(s"node { $ip } heart die.")
-    DatabaseSerivces.updateNodeStatusToDie(ip)
-      .flatMap(_=>DatabaseSerivces.updateNodeHeartRetryZero(ip))
-      .map(_ => ip)
+  val start = {
+    Future {
+      while (true) {
+        _nodes_check.apply
+        Thread.sleep(_heart_interval)
+      }
+    }
   }
-
 }

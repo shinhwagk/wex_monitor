@@ -16,7 +16,7 @@ object DatabaseServices {
   private val db = Database.forConfig("wex_monitor")
 
   def getNodesInfo: Future[List[String]] = {
-    db.run(sql"""SELECT JSON_INSERT(JSON_REMOVE(data,'$$.heart'),'$$.timestamp',CONCAT(data->'$$.heart.timestamp')) from nodes""".as[String]).map(_.toList)
+    db.run(sql"""SELECT JSON_REMOVE(data,'$$.heart') from nodes""".as[String]).map(_.toList)
   }
 
 }

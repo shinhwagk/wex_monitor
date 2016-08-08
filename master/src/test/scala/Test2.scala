@@ -3,6 +3,5 @@
   */
 object Test2 extends App{
   val t = System.currentTimeMillis()
-  println(c)
 
 }
