@@ -1,4 +1,10 @@
 [
-  {"name","disk_space","type":"py"},
-  {"name","invalid_object","type":"sql"}
+  {
+    "name": "disk_space",
+    "category": "py"
+  },
+  {
+    "name": "invalid_object",
+    "category": "sql"
+  }
 ]

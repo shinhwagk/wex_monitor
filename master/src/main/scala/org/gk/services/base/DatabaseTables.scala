@@ -60,11 +60,11 @@ object DatabaseTables {
 
   class Monitors(tag: Tag) extends Table[Monitor](tag, "MONITORS") {
 
-    def node = column[String]("node")
+    def node = column[String]("NODE")
 
-    def task = column[String]("task")
+    def task = column[String]("TASK")
 
-    def interval = column[Int]("interval")
+    def interval = column[Int]("INTERVAL")
 
     def * = (node, task, interval) <> (Monitor.tupled, Monitor.unapply)
   }
