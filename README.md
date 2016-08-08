@@ -1,13 +1,9 @@
 # wex_monitor
          
-```text  
-master  --montior item--> slaves
-        --collect item--> slaves
-        
-manage 		master		agent
-/api/master/nodes	~>			
-		/api/heart	~>	
-		/api/agent/monitor/{task_name}		
-/api/agent/monitor/nodes	~>			
+| manage | | master | |agent|
+| --- | ---|--- | --- | --- |
+| | | get:/api/agent/heart | ~>|  |
+| | |get:/api/agent/monitor/{task_name} | ~><br><~ | 404 <br>200 |
+| get:/api/master/monitor/nodes|~> | |  |  |
+| get:/api/master/monitor/nodes|~> | |  |  |
 
-```
