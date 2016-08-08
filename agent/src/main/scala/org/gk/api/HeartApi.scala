@@ -7,5 +7,5 @@ import akka.http.scaladsl.model._
 import akka.http.scaladsl.server.Directives._
 
 object HeartApi {
-  val route = (get & path("api" / "heart")) (complete(HttpResponse()))
+  val route = (get & path("api" / "agent" / "heart")) (complete(HttpResponse()))
 }

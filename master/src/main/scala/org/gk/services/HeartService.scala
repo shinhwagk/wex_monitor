@@ -37,7 +37,7 @@ class HeartService(implicit system: ActorSystem, materializer: ActorMaterializer
   private val _node_check: (Node) => Unit = (node: Node) => {
     val ip = node.ip
     val connectionFlow = Http().outgoingConnection(ip, 8080)
-    val responseFuture = Source.single(HttpRequest(uri = "/api/heart"))
+    val responseFuture = Source.single(HttpRequest(uri = "/api/agent/heart"))
       .via(connectionFlow)
       .runWith(Sink.ignore)
 

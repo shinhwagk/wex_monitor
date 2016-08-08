@@ -22,7 +22,4 @@ object Bootstrap extends App {
 
   println(s"Server online at http://localhost:8080/\nPress RETURN to stop...")
   StdIn.readLine()
-  //  bindingFuture
-  //    .flatMap(_.unbind())
-  //    .onComplete(_ => system.terminate())
 }
