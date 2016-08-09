@@ -7,7 +7,7 @@ import org.apache.logging.log4j.{LogManager, Logger}
   */
 object MyType {
 
-  implicit def Logging(o: AnyRef):Logger = {
-    LogManager.getLogger(this.getClass.getName);
+  implicit def Logging(o: Any):Logger = {
+    LogManager.getLogger(o.getClass.getName);
   }
 }

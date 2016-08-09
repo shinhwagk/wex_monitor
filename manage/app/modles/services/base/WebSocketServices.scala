@@ -23,12 +23,10 @@ object WebSocketServices {
 
     def receive = {
 
-      case d: Int =>
-        val url = s"""http://${_master_ip}:${_master_post}/api/master/nodes"""
+      case Int =>
+        val url = s"""http://${_master_ip}:${_master_post}/api/nodes"""
         ws.url(url).get().onSuccess {
-          case wr => {
-            out ! wr.body
-          }
+          case wr => out ! wr.body
         }
     }
   }

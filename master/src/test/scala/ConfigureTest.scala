@@ -5,6 +5,6 @@ import org.gk.common.Configure
   */
 object ConfigureTest {
   def main(args: Array[String]) {
-    println(Configure.die_retry_interval)
+    println(Configure.heart_die_retry_interval)
   }
 }

@@ -7,7 +7,7 @@ import com.typesafe.config.ConfigFactory
   */
 object Configure {
   private val conf = ConfigFactory.load();
-  val die_retry_interval = conf.getInt("wex.heart.die_retry_interval")
+  val heart_die_retry_interval = conf.getInt("wex.heart.die_retry_interval")
   val heart_interval = conf.getInt("wex.heart.interval")
   val heart_retry = conf.getInt("wex.heart.retry")
 

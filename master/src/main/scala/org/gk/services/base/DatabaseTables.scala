@@ -14,22 +14,24 @@ object DatabaseTables {
     val DOUBT = "doubt"
   }
 
-  case class Node(ip: String, status: String, hostname: String, timestamp: Long, environment: String, retry: Int) {
-    def setStatus(new_status: String): Node = Node(ip, new_status, hostname, timestamp, environment, retry)
+  case class Node(ip: String, port: Int, status: String, hostname: String, timestamp: Long, environment: String, retry: Int) {
+    def setStatus(new_status: String): Node = Node(ip, port, new_status, hostname, timestamp, environment, retry)
 
-    def updateTimestamp: Node = Node(ip, status, hostname, System.currentTimeMillis(), environment, retry)
+    def updateTimestamp: Node = Node(ip, port, status, hostname, System.currentTimeMillis(), environment, retry)
 
-    def incRetry: Node = Node(ip, status, hostname, timestamp, environment, retry + 1)
+    def incRetry: Node = Node(ip, port, status, hostname, timestamp, environment, retry + 1)
 
-    def zeroRetry: Node = Node(ip, status, hostname, timestamp, environment, 0)
+    def zeroRetry: Node = Node(ip, port, status, hostname, timestamp, environment, 0)
 
-    def calculateLatency: Node = Node(ip, status, hostname, System.currentTimeMillis() - timestamp, environment, retry)
+    def calculateLatency: Node = Node(ip, port, status, hostname, System.currentTimeMillis() - timestamp, environment, retry)
 
   }
 
   class Nodes(tag: Tag) extends Table[Node](tag, "NODES") {
 
     def ip = column[String]("IP", O.PrimaryKey)
+
+    def port = column[Int]("PORT")
 
     def status = column[String]("STATUS")
 
@@ -41,7 +43,7 @@ object DatabaseTables {
 
     def retry = column[Int]("RETRY")
 
-    def * = (ip, status, hostname, timestamp, environment, retry) <> (Node.tupled, Node.unapply)
+    def * = (ip, port, status, hostname, timestamp, environment, retry) <> (Node.tupled, Node.unapply)
   }
 
   case class Task(name: String, category: String)

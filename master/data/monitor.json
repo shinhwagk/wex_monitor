@@ -1,7 +1,7 @@
 [
   {
-    "node": "10.65.193.27",
+    "node": "127.0.0.1",
     "task": "disk_space",
-    "interval": 60
+    "interval": 5
   }
 ]

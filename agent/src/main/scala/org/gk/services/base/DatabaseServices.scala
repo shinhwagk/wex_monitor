@@ -1,11 +1,10 @@
 package org.gk.services.base
 
 import org.gk.common.MyType._
-import org.gk.services.base.DatabaseTables.{Task, Tasks}
+import org.gk.services.base.DatabaseTables._
 import slick.driver.H2Driver.api._
 
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.util.{Failure, Success}
+import scala.concurrent.Future
 
 /**
   * Created by zhangxu on 2016/8/8.
@@ -15,11 +14,16 @@ object DatabaseServices {
 
   val _tasks_Table = TableQuery[Tasks]
 
+  val _task_Result_Table = TableQuery[TaskResults]
+
   private val log = Logging(this)
 
-  db.run(_tasks_Table.schema.create).onComplete {
-    case Success(_) => log.info("Database Init success")
-    case Failure(ex) => log.info(s"Database Init failure: ${ex.getMessage}")
+  val _init_table = DBIO.seq(
+    (_tasks_Table.schema ++ _task_Result_Table.schema).create
+  )
+
+  def initDatabase: Future[Unit] = {
+    db.run(_init_table)
   }
 
 }

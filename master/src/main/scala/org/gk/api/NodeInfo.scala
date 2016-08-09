@@ -8,7 +8,7 @@ import org.gk.services.base.DatabaseSerivces
   */
 object NodeInfo {
 
-  val route = (get & path("api" / "master" / "nodes")) {
+  val route = (get & path("api" / "nodes")) {
     import org.gk.services.base.DataTransform._
     onSuccess(DatabaseSerivces.selectNodes) { nodes =>
       complete(nodes.map(_.calculateLatency))

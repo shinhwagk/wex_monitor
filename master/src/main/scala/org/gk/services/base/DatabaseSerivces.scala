@@ -4,7 +4,6 @@ package org.gk.services.base
 import org.gk.services.base.DatabaseTables._
 import slick.backend.DatabasePublisher
 import slick.driver.MySQLDriver.api._
-
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 import scala.io.Source
@@ -18,6 +17,11 @@ object DatabaseSerivces {
 
   import org.gk.common.MyType._
 
+  private val log = Logging(this)
+
+  import DataTransform._
+  import spray.json._
+
   val db = Database.forConfig("master")
 
   val _nodes_Table = TableQuery[Nodes]
@@ -26,56 +30,18 @@ object DatabaseSerivces {
 
   val _monitor_Table = TableQuery[Monitors]
 
-  private val log = Logging(this)
+  val _load_text_to_json = (file: String) => Source.fromFile(file).mkString.parseJson
 
-  import DataTransform._
-  import spray.json._
+  val _init_data = DBIO.seq(
+    (_nodes_Table.schema ++ _tasks_Table.schema ++ _monitor_Table.schema).create,
+    _nodes_Table ++= _load_text_to_json("master/data/nodes.json").convertTo[List[Node]],
+    _tasks_Table ++= _load_text_to_json("master/data/tasks.json").convertTo[List[Task]],
+    _monitor_Table ++= _load_text_to_json("master/data/monitor.json").convertTo[List[Monitor]]
+  )
 
-  db.run(_nodes_Table.schema.create).onComplete {
-    case Success(_) =>
-      Source.fromFile("master/data/nodes.json")
-        .mkString
-        .parseJson
-        .convertTo[List[Node]]
-        .foreach { node =>
-          db.run(_nodes_Table += node).onComplete {
-            case Success(cnt) => log.info(s"Database Init load node: ${node}")
-            case Failure(ex) => log.info(s"Database Init failure: ${ex.getMessage}")
-          }
-        }
-    case Failure(ex) => log.info(s"Database Init failure: ${ex.getMessage}")
+  def initDatabase: Future[Unit] = {
+    db.run(_init_data)
   }
-
-  db.run(_tasks_Table.schema.create).onComplete {
-    case Success(_) =>
-      Source.fromFile("master/data/tasks.json")
-        .mkString
-        .parseJson
-        .convertTo[List[Task]]
-        .foreach { task =>
-          db.run(_tasks_Table += task).onComplete {
-            case Success(cnt) => log.info(s"Database Init load node: ${task}")
-            case Failure(ex) => log.info(s"Database Init failure: ${ex.getMessage}")
-          }
-        }
-    case Failure(ex) => log.info(s"Database Init failure: ${ex.getMessage}")
-  }
-
-  db.run(_monitor_Table.schema.create)
-    .onComplete {
-      case Success(_) =>
-        Source.fromFile("master/data/monitor.json")
-          .mkString
-          .parseJson
-          .convertTo[List[Monitor]]
-          .foreach { monitor =>
-            db.run(_monitor_Table += monitor).onComplete {
-              case Success(cnt) => log.info(s"Database Init load node: ${monitor}")
-              case Failure(ex) => log.info(s"Database Init failure: ${ex.getMessage}")
-            }
-          }
-      case Failure(ex) => log.info(s"Database Init failure: ${ex.getMessage}")
-    }
 
   def selectNodes: Future[Seq[Node]] = {
     db.run(_nodes_Table.result)
@@ -89,8 +55,9 @@ object DatabaseSerivces {
     db.run(_nodes_Table.filter(_.ip === node.ip).update(node))
   }
 
-}
 
+
+}
 
 
 
