@@ -42,7 +42,10 @@ lazy val commonSettings = Seq(
     "org.apache.logging.log4j" % "log4j-api" % log4j2Version,
     "org.apache.logging.log4j" % "log4j-core" % log4j2Version,
     "com.h2database" % "h2" % "1.4.192",
-    ws
+    ws,
+    "com.jcraft" % "jsch" % "0.1.53",
+    "org.apache.mina" % "mina-core" % "2.0.13",
+    "org.apache.sshd" % "sshd-core" % "1.2.0"
     //    "com.typesafe.play" %% "play-slick" % "2.0.0",
     //    "com.typesafe.play" %% "play-slick-evolutions" % "2.0.0",
     //    jdbc

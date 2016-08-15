@@ -2,13 +2,10 @@ package org.gk.services.api
 
 import java.io.File
 
-import akka.actor.ActorSystem
-import akka.http.scaladsl.model.headers.Connection
-import akka.stream.{ActorMaterializer, IOResult}
+import akka.stream.IOResult
 import akka.stream.scaladsl.{FileIO, Source}
 import akka.util.ByteString
 import org.gk.common.MyType._
-import org.gk.services.base.DatabaseServices._
 import org.gk.services.base.DatabaseTables.{Task, TaskResult}
 import slick.driver.H2Driver.api._
 
@@ -20,8 +17,8 @@ import scala.util.{Failure, Success}
   */
 object MonitorServices {
 
-  import org.gk.services.base.ActorSystemServices._
   import org.gk.common.Configure._
+  import org.gk.services.base.ActorSystemServices._
   import org.gk.services.base.DatabaseServices._
 
   val log = Logging(this)
@@ -36,10 +33,14 @@ object MonitorServices {
   }
 
   def monitorAction(task: Task): Future[String] = Future {
-    if (task.category == "py")
-      monitorPythonAction(task)
-    else
-      monitorSqlAction(task)
+    task.category match {
+      case "py" => monitorActionChoice(monitorPythonAction, task)
+      case "sql" => monitorActionChoice(monitorSqlAction, task)
+    }
+  }
+
+  def monitorActionChoice(f: Task => String, task: Task): String = {
+    f(task)
   }
 
   def monitorPythonAction(task: Task): String = {
