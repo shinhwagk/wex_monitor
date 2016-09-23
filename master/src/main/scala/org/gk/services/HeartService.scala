@@ -3,6 +3,7 @@
   */
 package org.gk.services
 
+import akka.Done
 import akka.actor.ActorSystem
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.model.HttpRequest
@@ -41,10 +42,12 @@ class HeartService(implicit system: ActorSystem, materializer: ActorMaterializer
 
   private val _node_check: (Node) => Unit = (node: Node) => {
     val ip = node.ip
-    val connectionFlow = Http().outgoingConnection(ip, node.port)
-    val responseFuture = Source.single(HttpRequest(uri = "/api/agent/heart"))
-      .via(connectionFlow)
-      .runWith(Sink.ignore)
+    //    val connectionFlow = Http().outgoingConnection(ip, node.port)
+    //    val responseFuture: Future[Done] = Source.single(HttpRequest(uri = "/api/agent/heart"))
+    //      .via(connectionFlow)
+    //      .runWith(Sink.ignore)
+    import scala.sys.process._
+    val responseFuture: Future[String] = Future(Seq("ping", "-c", "4", ip).!!)
 
     responseFuture.onComplete {
       case Success(_) =>

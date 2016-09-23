@@ -18,27 +18,43 @@ import scala.concurrent.duration._
 /**
   * Created by zhangxu on 2016/8/1.
   */
+class testd extends Iterator[Int] {
+  var b = 0
+
+  override def hasNext: Boolean = b < 10
+
+  override def next(): Int = {
+    b +=1
+    b
+  }
+}
+
 object Test extends App {
 
-  val client = SshClient.setUpDefaultClient()
-  client.start();
-  val connect = client.connect("root", "10.65.103.53", 22)
-  val session = connect.verify().getSession
-  session.addPasswordIdentity("000000");
-  session.auth().verify()
-  val ex = session.createExecChannel("df -h | grep /dev")
-  ex.setOut(System.out)
+  import org.gk.services.base.ActorSystemServices._
 
-  ex.open().verify()
+  //  val client = SshClient.setUpDefaultClient()
+//  client.start();
+//  val connect = client.connect("root", "10.65.103.53", 22)
+//  val session = connect.verify().getSession
+//  session.addPasswordIdentity("000000");
+//  session.auth().verify()
+//  val ex = session.createExecChannel("df -h | grep /dev")
+//  ex.setOut(System.out)
+//
+//  ex.open().verify()
+//
+//  var b = 0
+//  while (b < 5) {
+//    Thread.sleep(1000)
+//    b += 1
+//  }
+//
+//  ex.close()
+  //  session.close()
+  Source.fromIterator(() => new testd).runForeach(println)
 
-  var b = 0
-  while (b < 5) {
-    Thread.sleep(1000)
-    b += 1
-  }
 
-  ex.close()
-  session.close()
   //  session.auth().verify(...timeout...);
   //
   //  val channel = session.createChannel(ClientChannel.CHANNEL_SHELL)

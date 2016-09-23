@@ -33,6 +33,5 @@ object Bootstrap {
         log.info("Init Database Success.")
       case Failure(ex) => log.info(s"Init Database Failure: ${ex.getMessage}")
     }
-
   }
 }

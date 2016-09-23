@@ -18,5 +18,4 @@ class Application @Inject()(implicit system: ActorSystem, materializer: Material
   def nodes = WebSocket.accept[String, String] { request =>
     ActorFlow.actorRef(out => NodesWebSocketActor.props(out,ws))
   }
-
 }

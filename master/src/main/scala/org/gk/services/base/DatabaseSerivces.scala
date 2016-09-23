@@ -35,8 +35,9 @@ object DatabaseSerivces {
   val _init_data = DBIO.seq(
     (_nodes_Table.schema ++ _tasks_Table.schema ++ _monitor_Table.schema).create,
     _nodes_Table ++= _load_text_to_json("master/data/nodes.json").convertTo[List[Node]],
-    _tasks_Table ++= _load_text_to_json("master/data/tasks.json").convertTo[List[Task]],
-    _monitor_Table ++= _load_text_to_json("master/data/monitor.json").convertTo[List[Monitor]]
+    _tasks_Table ++= _load_text_to_json("master/data/tasks.json").convertTo[List[Task]]
+//    ,
+//    _monitor_Table ++= _load_text_to_json("master/data/monitor.json").convertTo[List[Monitor]]
   )
 
   def initDatabase: Future[Unit] = {

@@ -17,16 +17,17 @@ object WebSocketServices {
   }
 
   class NodesWebSocketActor(out: ActorRef, ws: WSClient) extends Actor {
-    context.system.scheduler.schedule(Duration.Zero, 1 second, self, 0)
+    context.system.scheduler.schedule(Duration.Zero, 1 second, self, "11")
 
     import modles.common.Configure._
 
     def receive = {
-
-      case Int =>
+      case msg: String =>
         val url = s"""http://${_master_ip}:${_master_post}/api/nodes"""
         ws.url(url).get().onSuccess {
-          case wr => out ! wr.body
+          case wr => {
+            out ! wr.body
+          }
         }
     }
   }
